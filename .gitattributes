@@ -1,0 +1,4 @@
+models/*.pth.ckpt filter=lfs diff=lfs merge=lfs -text
+reid/models/*.ckpt filter=lfs diff=lfs merge=lfs -text
+PP-OCRv5_server_*/inference.pdiparams filter=lfs diff=lfs merge=lfs -text
+input_videos/*.mp4 filter=lfs diff=lfs merge=lfs -text
