@@ -8,6 +8,7 @@ from ball_aquisition import BallAquisitionDetector
 from pass_and_interception_detector import PassAndInterceptionDetector
 from tactical_view_converter import TacticalViewConverter
 from speed_and_distance_calculator import SpeedAndDistanceCalculator
+from jersey_number_detector import JerseyNumberDetector
 from drawers import (
     PlayerTracksDrawer, 
     BallTracksDrawer,
@@ -41,9 +42,10 @@ def main():
     # Read Video
     video_frames = read_video(args.input_video)
     
-    ## Initialize Tracker
+    ## Initialize Trackers and Detectors
     player_tracker = PlayerTracker(PLAYER_DETECTOR_PATH)
     ball_tracker = BallTracker(BALL_DETECTOR_PATH)
+    jersey_detector = JerseyNumberDetector()
 
     ## Initialize Keypoint Detector
     court_keypoint_detector = CourtKeypointDetector(COURT_KEYPOINT_DETECTOR_PATH)
@@ -53,6 +55,14 @@ def main():
                                        read_from_stub=True,
                                        stub_path=os.path.join(args.stub_path, 'player_track_stubs.pkl')
                                       )
+    
+    # Detect jersey numbers for each player
+    jersey_numbers = {}
+    for frame_idx, frame in enumerate(video_frames):
+        frame_numbers = jersey_detector.detect_numbers_in_frame(frame, player_tracks[frame_idx])
+        for player_id, number in frame_numbers.items():
+            if player_id not in jersey_numbers:
+                jersey_numbers[player_id] = number
     
     ball_tracks = ball_tracker.get_object_tracks(video_frames,
                                                  read_from_stub=True,
@@ -67,7 +77,7 @@ def main():
     # Remove Wrong Ball Detections
     ball_tracks = ball_tracker.remove_wrong_detections(ball_tracks)
     # Interpolate Ball Tracks
-    ball_tracks = ball_tracker.interpolate_ball_positions(ball_tracks)
+    # ball_tracks = ball_tracker.interpolate_ball_positions(ball_tracks)
    
 
     # Assign Player Teams
@@ -120,7 +130,8 @@ def main():
     output_video_frames = player_tracks_drawer.draw(video_frames, 
                                                     player_tracks,
                                                     player_assignment,
-                                                    ball_aquisition)
+                                                    ball_aquisition,
+                                                    jersey_numbers)  # Add jersey numbers to visualization
     output_video_frames = ball_tracks_drawer.draw(output_video_frames, ball_tracks)
 
     ## Draw KeyPoints

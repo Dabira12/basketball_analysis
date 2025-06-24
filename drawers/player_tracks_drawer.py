@@ -1,4 +1,5 @@
 from .utils import draw_ellipse,draw_traingle
+import cv2
 
 class PlayerTracksDrawer:
     """
@@ -20,8 +21,9 @@ class PlayerTracksDrawer:
         self.default_player_team_id = 1
         self.team_1_color=team_1_color
         self.team_2_color=team_2_color
+        self.font = cv2.FONT_HERSHEY_SIMPLEX
 
-    def draw(self,video_frames,tracks,player_assignment,ball_aquisition):
+    def draw(self,video_frames,tracks,player_assignment,ball_aquisition,jersey_numbers=None):
         """
         Draw player tracks and ball possession indicators on a list of video frames.
 
@@ -32,6 +34,7 @@ class PlayerTracksDrawer:
             player_assignment (list): A list of dictionaries indicating team assignments for each player
                 in the corresponding frame.
             ball_aquisition (list): A list indicating which player has possession of the ball in each frame.
+            jersey_numbers (dict, optional): A dictionary mapping player IDs to jersey numbers.
 
         Returns:
             list: A list of frames with player tracks and ball possession indicators drawn on them.
@@ -57,6 +60,18 @@ class PlayerTracksDrawer:
                     color = self.team_2_color
 
                 frame = draw_ellipse(frame, player["bbox"],color, track_id)
+
+                if jersey_numbers and track_id in jersey_numbers:
+                    number = jersey_numbers[track_id]
+                    x1, y1, x2, y2 = player["bbox"]
+                    center_x = int((x1 + x2) / 2)
+                    center_y = int((y1 + y2) / 2)
+                    text = f"#{number}"
+                    text_size = cv2.getTextSize(text, self.font, 0.5, 2)[0]
+                    text_x = center_x - text_size[0] // 2
+                    text_y = center_y + text_size[1] // 2
+                    cv2.putText(frame, text, (text_x, text_y), 
+                                self.font, 0.5, color, 2)
 
                 if track_id == player_id_has_ball:
                     frame = draw_traingle(frame, player["bbox"],(0,0,255))
