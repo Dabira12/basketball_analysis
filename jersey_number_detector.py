@@ -33,17 +33,16 @@ class JerseyNumberDetector:
                 if isinstance(text_info, tuple):
                     text, confidence = text_info
                     if str(text).isdigit() and confidence > 0.5:
-                        return int(text)
+                        return int(text), confidence  # Return both number and confidence
         
-        return None
+        return None, 0.0  # Return None and 0 confidence if no number found
 
     def detect_numbers_in_frame(self, frame, player_tracks):
         """Detect jersey numbers for all players in a frame"""
         jersey_numbers = {}
         for player_id, track_info in player_tracks.items():
-            # Extract bbox from the track_info dictionary
-            bbox = track_info["bbox"]  # This is the fix - access the bbox from the dictionary
-            number = self.get_jersey_number(frame, bbox)
+            bbox = track_info["bbox"]
+            number, confidence = self.get_jersey_number(frame, bbox)  # Get both number and confidence
             if number:
-                jersey_numbers[player_id] = number
+                jersey_numbers[player_id] = (number, confidence)  # Store both as a tuple
         return jersey_numbers 

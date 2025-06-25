@@ -62,16 +62,16 @@ class PlayerTracksDrawer:
                 frame = draw_ellipse(frame, player["bbox"],color, track_id)
 
                 if jersey_numbers and track_id in jersey_numbers:
-                    number = jersey_numbers[track_id]
+                    number = jersey_numbers[track_id][0]
                     x1, y1, x2, y2 = player["bbox"]
                     center_x = int((x1 + x2) / 2)
                     center_y = int((y1 + y2) / 2)
                     text = f"#{number}"
-                    text_size = cv2.getTextSize(text, self.font, 0.5, 2)[0]
+                    text_size = cv2.getTextSize(text, self.font, 0.5, 3)[0]
                     text_x = center_x - text_size[0] // 2
                     text_y = center_y + text_size[1] // 2
                     cv2.putText(frame, text, (text_x, text_y), 
-                                self.font, 0.5, color, 2)
+                                self.font, 0.5, (0, 255, 0), 3)
 
                 if track_id == player_id_has_ball:
                     frame = draw_traingle(frame, player["bbox"],(0,0,255))
