@@ -1,0 +1,63 @@
+PaddlePaddle GPU Setup Guide - Fixing libcuda.so Issue
+====================================================
+
+Problem Description:
+------------------
+When running PaddlePaddle with GPU support, you might encounter this error:
+"The third-party dynamic library (libcuda.so) that Paddle depends on is not configured correctly."
+
+This happens because PaddlePaddle looks for "libcuda.so" but systems typically have version-specific files like "libcuda.so.535.230.02"
+
+Step-by-Step Solution:
+--------------------
+1. Check NVIDIA Driver and CUDA Version:
+   $ nvidia-smi
+   $ nvcc -V
+
+2. Find existing CUDA libraries:
+   $ find / -name "libcuda.so*" 2>/dev/null
+   This will show files like: /usr/lib/x86_64-linux-gnu/libcuda.so.535.230.02
+
+3. Create symbolic link:
+   $ cd /usr/lib/x86_64-linux-gnu/
+   $ sudo ln -sf libcuda.so.<your_version> libcuda.so
+   Example: sudo ln -sf libcuda.so.535.230.02 libcuda.so
+
+4. Set environment variables:
+   $ export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+   $ export CUDA_HOME=/usr/local/cuda
+   $ export PATH=$CUDA_HOME/bin:$PATH
+   $ export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
+
+5. Verify PaddlePaddle GPU Setup:
+   $ python3 -c "
+   import paddle
+   paddle.device.set_device('gpu:0')
+   paddle.device.cuda.empty_cache()
+   print(paddle.__version__)
+   print(paddle.device.get_device())
+   "
+
+Expected Output:
+--------------
+You should see something like:
+- PaddlePaddle version (e.g., 2.6.0)
+- Device: gpu:0
+- No errors about libcuda.so
+
+Troubleshooting:
+--------------
+If issues persist:
+1. Verify NVIDIA driver is installed correctly
+2. Check CUDA version compatibility with PaddlePaddle
+3. Ensure all symbolic links are created correctly
+4. Verify environment variables are set properly
+
+Note: When moving to a different machine
+-------------------------------------
+1. Check the NVIDIA driver version on the new machine
+2. Find the correct libcuda.so version number
+3. Create new symbolic links with the correct version number
+4. Set environment variables as described above
+
+This fix is machine-specific and needs to be repeated on each new system with the appropriate version numbers.

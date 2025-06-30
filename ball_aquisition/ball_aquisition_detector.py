@@ -1,6 +1,7 @@
 import sys 
 sys.path.append('../')
 from utils.bbox_utils import measure_distance, get_center_of_bbox
+import numpy as np
 
 class BallAquisitionDetector:
     """
@@ -141,7 +142,7 @@ class BallAquisitionDetector:
         
         for player_id, player_info in player_tracks_frame.items():
             player_bbox = player_info.get('bbox', [])
-            if not player_bbox:
+            if player_bbox is None or not np.any(player_bbox):
                 continue
                 
             containment = self.calculate_ball_containment_ratio(player_bbox, ball_bbox)

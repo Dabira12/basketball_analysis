@@ -1,7 +1,7 @@
 import os
 import argparse
 from utils import read_video, save_video
-from trackers import PlayerTracker, BallTracker
+from trackers import PlayerTracker, BallTracker, DeepSORTPlayerTracker, HoopTracker
 from team_assigner import TeamAssigner
 from court_keypoint_detector import CourtKeypointDetector
 from ball_aquisition import BallAquisitionDetector
@@ -17,7 +17,8 @@ from drawers import (
     FrameNumberDrawer,
     PassInterceptionDrawer,
     TacticalViewDrawer,
-    SpeedAndDistanceDrawer
+    SpeedAndDistanceDrawer,
+    HoopTracksDrawer
 )
 from configs import(
     STUBS_DEFAULT_PATH,
@@ -44,30 +45,40 @@ def main():
     
     ## Initialize Trackers and Detectors
     player_tracker = PlayerTracker(PLAYER_DETECTOR_PATH)
+    # player_tracker = DeepSORTPlayerTracker(PLAYER_DETECTOR_PATH, reid_model_path="osnet_x0_25_msmt17.pt"  )
     ball_tracker = BallTracker(BALL_DETECTOR_PATH)
     jersey_detector = JerseyNumberDetector()
-
+    hoop_tracker = HoopTracker(BALL_DETECTOR_PATH)
     ## Initialize Keypoint Detector
     # court_keypoint_detector = CourtKeypointDetector(COURT_KEYPOINT_DETECTOR_PATH)
 
     # Run Detectors
     player_tracks = player_tracker.get_object_tracks(video_frames,
-                                       read_from_stub=True,
+                                       read_from_stub=False,
                                        stub_path=os.path.join(args.stub_path, 'player_track_stubs.pkl')
+                                      )
+    hoop_tracks = hoop_tracker.get_object_tracks(video_frames,
+                                       read_from_stub=False,
+                                       stub_path=os.path.join(args.stub_path, 'hoop_track_stubs.pkl')
                                       )
     
     # Detect jersey numbers for each player
+
+    print("Detecting jersey numbers")
     jersey_numbers = {}
     for frame_idx, frame in enumerate(video_frames):
-        frame_numbers = jersey_detector.detect_numbers_in_frame(frame, player_tracks[frame_idx])
+        print(f"Frame {frame_idx}")
+        frame_numbers = jersey_detector.detect_numbers_in_frame(frame, player_tracks[frame_idx], frame_idx)
         for player_id, (number, confidence) in frame_numbers.items():
             if player_id not in jersey_numbers:
                 jersey_numbers[player_id] = (number, confidence)
             elif confidence > jersey_numbers[player_id][1]:  # Only check confidence if player_id exists
                 jersey_numbers[player_id] = (number, confidence)
+
+    print(jersey_numbers)
     
     ball_tracks = ball_tracker.get_object_tracks(video_frames,
-                                                 read_from_stub=True,
+                                                 read_from_stub=False,
                                                  stub_path=os.path.join(args.stub_path, 'ball_track_stubs.pkl')
                                                 )
     ## Run KeyPoint Extractor
@@ -86,7 +97,7 @@ def main():
     team_assigner = TeamAssigner()
     player_assignment = team_assigner.get_player_teams_across_frames(video_frames,
                                                                     player_tracks,
-                                                                    read_from_stub=True,
+                                                                    read_from_stub=False,
                                                                     stub_path=os.path.join(args.stub_path, 'player_assignment_stub.pkl')
                                                                     )
 
@@ -121,6 +132,7 @@ def main():
     # Initialize Drawers
     player_tracks_drawer = PlayerTracksDrawer()
     ball_tracks_drawer = BallTracksDrawer()
+    hoop_tracks_drawer = HoopTracksDrawer()
     # court_keypoint_drawer = CourtKeypointDrawer()
     team_ball_control_drawer = TeamBallControlDrawer()
     frame_number_drawer = FrameNumberDrawer()
@@ -146,6 +158,10 @@ def main():
     output_video_frames = team_ball_control_drawer.draw(output_video_frames,
                                                         player_assignment,
                                                         ball_aquisition)
+
+    # Draw Hoops
+    print(hoop_tracks)
+    output_video_frames = hoop_tracks_drawer.draw(output_video_frames, hoop_tracks)
 
     # # Draw Passes and Interceptions
     # output_video_frames = pass_and_interceptions_drawer.draw(output_video_frames,

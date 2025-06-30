@@ -1,9 +1,9 @@
-numpy==1.23.5
+numpy==1.24.4
 opencv_python==4.9.0.80
 opencv_python_headless==4.10.0.84
-paddleocr==2.6.0.1
-paddlepaddle==3.0.0
-pandas==2.0.3
+paddleocr==2.10.0
+paddlepaddle==2.6.0.post120
+pandas==1.5.3
 Pillow==11.1.0
 PyMuPDF==1.21.0
 roboflow==1.1.51
@@ -11,3 +11,4 @@ supervision==0.25.1
 torch==2.2.0
 transformers==4.46.3
 ultralytics==8.3.158
+
