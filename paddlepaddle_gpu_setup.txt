@@ -61,3 +61,72 @@ Note: When moving to a different machine
 4. Set environment variables as described above
 
 This fix is machine-specific and needs to be repeated on each new system with the appropriate version numbers.
+
+
+
+PaddlePaddle GLIBCXX Setup Guide - Fixing libstdc++ Version Issue
+==============================================================
+
+Problem Description:
+------------------
+When running PaddlePaddle, you might encounter this error:
+"ImportError: /opt/conda/bin/../lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found"
+
+This happens because PaddlePaddle requires GLIBCXX_3.4.30, but the conda environment's libstdc++ doesn't have this version.
+
+Step-by-Step Solution:
+--------------------
+1. Check available GLIBCXX versions in system library:
+   $ strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.32 | grep GLIBCXX
+   This should show GLIBCXX_3.4.30 among other versions
+
+2. Find all libstdc++ locations:
+   $ find / -name "libstdc++.so*" 2>/dev/null
+   This will show multiple versions in:
+   - /usr/lib/x86_64-linux-gnu/
+   - /opt/conda/lib/
+   - /opt/conda/envs/*/lib/
+
+3. Remove conda's problematic symlink:
+   $ rm /opt/conda/lib/libstdc++.so.6
+
+4. Create new symbolic link to system library:
+   $ ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.32 /opt/conda/lib/libstdc++.so.6
+
+5. Verify the setup:
+   $ python3 -c "import paddle; print(paddle.__version__)"
+
+Alternative Solutions:
+-------------------
+If the above doesn't work, try:
+
+1. Using LD_LIBRARY_PATH:
+   $ export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+
+2. Conda installation:
+   $ conda install -c conda-forge libstdcxx-ng
+
+Making Changes Permanent:
+----------------------
+Add to conda environment activation script:
+$ mkdir -p /opt/conda/envs/YOUR_ENV_NAME/etc/conda/activate.d
+$ echo 'export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH' > \
+  /opt/conda/envs/YOUR_ENV_NAME/etc/conda/activate.d/env_vars.sh
+$ chmod +x /opt/conda/envs/YOUR_ENV_NAME/etc/conda/activate.d/env_vars.sh
+
+Troubleshooting:
+--------------
+If issues persist:
+1. Verify system libstdc++ has required GLIBCXX version
+2. Check permissions when creating symlinks
+3. Ensure conda environment is activated
+4. Try reinstalling PaddlePaddle
+
+Note: When moving to a different machine
+-------------------------------------
+1. Check available GLIBCXX versions on the new system
+2. Find the correct libstdc++.so version number
+3. Update symlinks with the correct version number
+4. Set environment variables as needed
+
+This fix is machine-specific and needs to be repeated on each new system with the appropriate version numbers.

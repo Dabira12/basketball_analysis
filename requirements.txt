@@ -2,7 +2,6 @@ numpy==1.24.4
 opencv_python==4.9.0.80
 opencv_python_headless==4.10.0.84
 paddleocr==2.10.0
-paddlepaddle==2.6.0.post120
 pandas==1.5.3
 Pillow==11.1.0
 PyMuPDF==1.21.0
@@ -12,3 +11,12 @@ torch==2.2.0
 transformers==4.46.3
 ultralytics==8.3.158
 
+#paddlepaddle==2.6.0.post120
+#python -m pip install paddlepaddle-gpu==2.6.2.post120 -i https://www.paddlepaddle.org.cn/packages/stable/cu120/
+#sudo apt-get update
+#sudo apt-get install libgl1-mesa-glx
+# git submodule update --init --recursive boxmot
+
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt-get update
+sudo apt-get install -y libstdc++6

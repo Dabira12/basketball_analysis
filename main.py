@@ -8,7 +8,7 @@ from ball_aquisition import BallAquisitionDetector
 from pass_and_interception_detector import PassAndInterceptionDetector
 from tactical_view_converter import TacticalViewConverter
 from speed_and_distance_calculator import SpeedAndDistanceCalculator
-from jersey_number_detector import JerseyNumberDetector
+from jersey_number_detector_new import JerseyNumberDetectorNew
 from drawers import (
     PlayerTracksDrawer, 
     BallTracksDrawer,
@@ -47,7 +47,8 @@ def main():
     player_tracker = PlayerTracker(PLAYER_DETECTOR_PATH)
     # player_tracker = DeepSORTPlayerTracker(PLAYER_DETECTOR_PATH, reid_model_path="osnet_x0_25_msmt17.pt"  )
     ball_tracker = BallTracker(BALL_DETECTOR_PATH)
-    jersey_detector = JerseyNumberDetector()
+    # jersey_detector = JerseyNumberDetector()
+    jersey_detector = JerseyNumberDetectorNew()
     hoop_tracker = HoopTracker(BALL_DETECTOR_PATH)
     ## Initialize Keypoint Detector
     # court_keypoint_detector = CourtKeypointDetector(COURT_KEYPOINT_DETECTOR_PATH)
