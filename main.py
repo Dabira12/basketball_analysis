@@ -27,6 +27,10 @@ from configs import(
     COURT_KEYPOINT_DETECTOR_PATH,
     OUTPUT_VIDEO_PATH
 )
+import logging
+import json
+
+logger = logging.getLogger(__name__)
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Basketball Video Analysis')
@@ -67,14 +71,48 @@ def main():
 
     print("Detecting jersey numbers")
     jersey_numbers = {}
-    for frame_idx, frame in enumerate(video_frames):
-        print(f"Frame {frame_idx}")
-        frame_numbers = jersey_detector.detect_numbers_in_frame(frame, player_tracks[frame_idx], frame_idx)
-        for player_id, (number, confidence) in frame_numbers.items():
-            if player_id not in jersey_numbers:
-                jersey_numbers[player_id] = (number, confidence)
-            elif confidence > jersey_numbers[player_id][1]:  # Only check confidence if player_id exists
-                jersey_numbers[player_id] = (number, confidence)
+    jersey_numbers = jersey_detector.process_tracklet(video_frames, player_tracks)
+    
+    # Add logging
+    logger.info("=" * 50)
+    logger.info("Jersey Number Detection Results:")
+    logger.info("=" * 50)
+    
+    # Log formatted results
+    if not jersey_numbers:
+        logger.warning("No jersey numbers detected!")
+    else:
+        for player_id, (number, confidence) in jersey_numbers.items():
+            logger.info(f"Player {player_id:3d}: Jersey #{number:3d} (confidence: {confidence:.2f})")
+    
+    # Log full data structure
+    logger.info("\nFull Data Structure:")
+    logger.info("-" * 50)
+    import json
+    logger.info(f"Type: {type(jersey_numbers)}")
+    logger.info("Contents:")
+    try:
+        # Pretty print the dictionary with indentation
+        formatted_data = json.dumps(jersey_numbers, indent=2)
+        logger.info(f"\n{formatted_data}")
+    except TypeError:
+        # If json.dumps fails (e.g., due to numpy arrays or other non-serializable types)
+        logger.info("Raw structure:")
+        for player_id, data in jersey_numbers.items():
+            logger.info(f"  {player_id}: {data}")
+    
+    logger.info("=" * 50)
+
+    # for frame_idx, frame in enumerate(video_frames):
+    #     print(f"Frame {frame_idx}")
+    #     frame_numbers = jersey_detector.detect_numbers_in_frame(frame, player_tracks[frame_idx], frame_idx)
+    #     for player_id, (number, confidence) in frame_numbers.items():
+    #         if player_id not in jersey_numbers:
+    #             jersey_numbers[player_id] = (number, confidence)
+    #         elif confidence > jersey_numbers[player_id][1]:  # Only check confidence if player_id exists
+    #             jersey_numbers[player_id] = (number, confidence)
+
+
 
     print(jersey_numbers)
     
